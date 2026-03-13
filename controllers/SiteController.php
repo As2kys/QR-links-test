@@ -98,8 +98,6 @@ class SiteController extends Controller
         
         $model = new Link();
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
-            // $model->user_ip = Yii::$app->request->userIP; 
-            // OR remoteIP или 'X-Forwarded-For' и т.д...
 
             if (Yii::$app->request->post('save', false) && Yii::$app->request->isAjax) { // return ['ok 90'];
                 if ($model->save()) {
@@ -108,9 +106,13 @@ class SiteController extends Controller
                         'url_full' => $model->url_full,
                         'url_short' => $model->url_short,
                         'html' => // Html::img($model->qrcode)
-                            Html::a(Html::img($model->qrcode), $model->qrcode, ['data-fancybox' => $model->qrcode, 'rel' => 'fancybox'])
-                            . ' ' . Html::a($model->url_short, Url::to(['go/'.$model->url_short]))
-                            . ' - ' . date('Y-m-d H:i:s', $model->created_at),
+                            Html::a(
+                                Html::img($model->qrcode),
+                                $model->qrcode,
+                                ['data-fancybox' => $model->qrcode, 'rel' => 'fancybox', 'target' => '_blank']
+                            )
+                            . Html::a($model->url_short, Url::to(['go/'.$model->url_short]), ['target' => '_blank'])
+                            . date(' - Y-m-d H:i:s', $model->created_at),
                     ];
                 }
                 else {
