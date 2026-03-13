@@ -2,176 +2,132 @@
 
 /** @var yii\web\View $this */
 
+use chillerlan\QRCode\QRCode;
+use newerton\fancybox\FancyBox;
+use yii\bootstrap5\ActiveForm;
 use yii\helpers\Html;
+use yii\helpers\Url;
 
-$this->title = 'My Yii Application';
+$this->title = 'QRcodest';
+$this->registerCss('
+    .input-group label { margin: 7px 10px 0 }
+    .field-link-url_full { position: relative; width: 88%; }
+    #urlok { display:flex; float:right; padding: 3px 8px; }
+    button[disabled] { opacity: 0.4!important }
+    img.qrcode { max-width: 200px }
+    h4 u { color: #888!important; cursor: pointer; font-size: 20px; }
+    #links a[data-fancybox] { margin-right: 10px }
+    #links img { max-height: 30px }
+');
 ?>
 <div class="site-index d-flex flex-column justify-content-center">
 
-    <div class="p-5 mb-5 text-center bg-body-tertiary rounded-3">
-        <h1 class="display-4 fw-bold">Congratulations!</h1>
+    <div class="p-2 mb-2 text-center bg-body-tertiary rounded-3" style="max-width: 600px; margin: 0 auto; ">
+        <h1 class="display-5 mb-4 fw-bold">Сервис коротких ссылок</h1>
+        <?php
+            $form = ActiveForm::begin([
+                'action' => Url::to(['create-link']),
+                'enableAjaxValidation' => true,
+                // 'enableClientValidation' => false,
+                'id' => 'create-link',
+                'method' => 'POST',
+            ]);
 
-        <p class="lead col-lg-8 mx-auto">You have successfully created your Yii-powered application.</p>
+            echo Html::button('Ok?', ['onclick' => 'window.urlcheck()', 'id' => 'urlok']);
+            echo $form->field($model, 'url_full', [
+                'inputOptions' => ['class' => 'form-control', 'autofocus' => true],
+                'options' => ['class' => 'input-group has-validation mb-3'],
+            ])->textInput([
+                'placeholder' => 'https://...',
+                'value' => 'https://ya.ru/?'.date('is')
+            ])->label('Ссылка');
 
-        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-            <?= Html::a(
-                'Get started with Yii',
-                'https://www.yiiframework.com',
-                ['class' => 'btn btn-lg btn-success'],
-            ) ?>
+            echo
+                Html::submitButton('Сгенерировать короткую ссылку',
+                    ['class' => 'btn btn-primary px-2 ms-auto', 'disabled' => 'disabled', 'name' => 'save']
+                ),
+                Html::tag('div', '', ['id' => 'check-result']);
+            ActiveForm::end();
+        ?><br>
+        <h4>Предыдущие ссылки <!--u data-href="<?= Url::to(['site/links']) ?>">обновить</u--></h4>
+        <div id="links">
+            <?php
+                foreach(is_array($links) ? $links : [$links] as $link) {
+                    echo Html::tag('div',
+                        Html::a(Html::img($link->qrcode), $link->qrcode, ['data-fancybox' => $link->qrcode, 'rel' => 'fancybox']) . 
+                        Html::a(
+                            substr($link->url_full, 0, 24) . ((strlen($link->url_full) > 24) ? '...' : ''),
+                            Url::to(['go/'.$link->url_short]), ['title' => $link->url_full, 'target' => '_blank']
+                        ). ' - ' . date('H:i', strtotime($link->created_at)) . ', кликов - ' . $link->clicks
+                    );
+                }
+                if (!empty($links)) {
+                    echo '<div><i>QR-код можно увеличить</i></div>';
+                    // Hhtml::tag('div', Html::tag('i', 'QR-код увеличивается'));
+                }
+            ?>
         </div>
-    </div>
-
-    <div class="body-content">
-
-        <div class="row g-4">
-            <div class="col-lg-4">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <h2 class="h5"><?= Yii::t('app', 'Definitive Guide') ?></h2>
-
-                        <p><?= Yii::t(
-                            'app',
-                            'Learn Yii step by step: MVC structure, ActiveRecord, migrations, form validation, authentication, RBAC, REST APIs, caching, and testing. Everything you need is covered in one place, from basics to advanced topics.',
-                        ) ?></p>
-
-                        <ul class="list-unstyled small">
-                            <li><?= Html::a(
-                                Yii::t('app', 'Definitive Guide'),
-                                'https://www.yiiframework.com/doc/guide/2.0/en',
-                                [
-                                    'rel' => 'noopener',
-                                    'target' => '_blank',
-                                ],
-                            ) ?></li>
-                            <li><?= Html::a(
-                                Yii::t('app', 'API Reference'),
-                                'https://www.yiiframework.com/doc/api/2.0',
-                                [
-                                    'rel' => 'noopener',
-                                    'target' => '_blank',
-                                ],
-                            ) ?></li>
-                            <li><?= Html::a(
-                                Yii::t('app', 'Getting Started'),
-                                'https://www.yiiframework.com/doc/guide/2.0/en/start-installation',
-                                [
-                                    'rel' => 'noopener',
-                                    'target' => '_blank',
-                                ],
-                            ) ?></li>
-                        </ul>
-                    </div>
-                    <div class="card-footer bg-transparent border-0">
-                        <?= Html::a(
-                            'Yii Documentation &raquo;',
-                            'https://www.yiiframework.com/doc/',
-                            ['class' => 'btn btn-outline-secondary'],
-                        ) ?>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <h2 class="h5"><?= Yii::t('app', 'Community Forum') ?></h2>
-
-                        <p><?= Yii::t(
-                            'app',
-                            'The Yii Forum is where thousands of developers share solutions, discuss best practices, and help each other. Before opening a GitHub issue, chances are someone already solved your problem there.',
-                        ) ?></p>
-
-                        <ul class="list-unstyled small">
-                            <li><?= Html::a(
-                                Yii::t('app', 'Forum'),
-                                'https://forum.yiiframework.com/',
-                                [
-                                    'rel' => 'noopener',
-                                    'target' => '_blank',
-                                ],
-                            ) ?></li>
-                            <li><?= Html::a(
-                                Yii::t('app', 'GitHub'),
-                                'https://github.com/yiisoft/yii2',
-                                [
-                                    'rel' => 'noopener',
-                                    'target' => '_blank',
-                                ],
-                            ) ?></li>
-                            <li><?= Html::a(
-                                Yii::t('app', 'Telegram'),
-                                'https://t.me/yii_framework_in_english',
-                                [
-                                    'rel' => 'noopener',
-                                    'target' => '_blank',
-                                ],
-                            ) ?></li>
-                        </ul>
-                    </div>
-                    <div class="card-footer bg-transparent border-0">
-                        <?= Html::a(
-                            'Yii Forum &raquo;',
-                            'https://www.yiiframework.com/forum/',
-                            ['class' => 'btn btn-outline-secondary'],
-                        ) ?>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <h2 class="h5"><?= Yii::t('app', 'Official Extensions') ?></h2>
-
-                        <p><?= Yii::t(
-                            'app',
-                            'Supercharge your app with battle-tested packages maintained by the core team.',
-                        ) ?></p>
-
-                        <ul class="list-unstyled small">
-                            <li><?= Html::a(
-                                'yii2-debug',
-                                'https://www.yiiframework.com/extension/yiisoft/yii2-debug',
-                                [
-                                    'rel' => 'noopener',
-                                    'target' => '_blank',
-                                ],
-                            ) ?></li>
-                            <li><?= Html::a(
-                                'yii2-gii',
-                                'https://www.yiiframework.com/extension/yiisoft/yii2-gii',
-                                [
-                                    'rel' => 'noopener',
-                                    'target' => '_blank',
-                                ],
-                            ) ?></li>
-                            <li><?= Html::a(
-                                'yii2-queue',
-                                'https://www.yiiframework.com/extension/yiisoft/yii2-queue',
-                                [
-                                    'rel' => 'noopener',
-                                    'target' => '_blank',
-                                ],
-                            ) ?></li>
-                            <li><?= Html::a(
-                                'yii2-redis',
-                                'https://www.yiiframework.com/extension/yiisoft/yii2-redis',
-                                [
-                                    'rel' => 'noopener',
-                                    'target' => '_blank',
-                                ],
-                            ) ?></li>
-                        </ul>
-                    </div>
-                    <div class="card-footer bg-transparent border-0">
-                        <?= Html::a(
-                            'Yii Extensions &raquo;',
-                            'https://www.yiiframework.com/extensions/',
-                            ['class' => 'btn btn-outline-secondary'],
-                        ) ?>
-                    </div>
-                </div>
-            </div>
-        </div>
-
     </div>
 </div>
+<?php
+$this->registerJs('
+    $("form#create-link:first").off("submit").on("submit", function(event) {
+        event.preventDefault();
+        if (confirm("Все верно, сохранить ссылку?")) {
+            var formData = new FormData(this);
+            formData.append("save", "save");
+            $.ajax({
+                url: "' . Url::to(['create-link']). '",
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    console.log(response.url_short);
+                    $("#links").prepend(response.html);
+                    $("#links a[data-fancybox]").fancybox();
+                    $("button[name=\'save\']").prop("disabled", true);
+                    $("#link-url_full").val("");
+                },
+                error: function(xhr, status, error) {
+                    $("#links").prepend("<p>Error: " + xhr.responseText + "</p>");
+                    console.error(xhr.responseText);
+                }
+            });
+        }
+        return false;
+    });
+
+    window.urlcheck = async function checkUrlIsWorking(url) {
+        window.urltocheck = url ? url : $("#link-url_full").val();
+        try {
+            const response = await fetch(window.urltocheck, {
+                method: "HEAD",
+                mode: "no-cors"
+            });
+            $("button[name=\'save\']").prop("disabled", false);
+            $("#check-result").text(window.urltocheck + " is ok.");
+            return response.ok; 
+        } catch (error) {
+            $("#check-result").text(window.urltocheck + " URL недоступен");
+            alert("Данный URL недоступен");
+            return false;
+        }
+    }
+
+    $("#urlok").click(function() {
+        console.log("checking...");
+        window.urlcheck;
+    });
+');
+echo FancyBox::widget([
+    'target' => 'a[rel=fancybox]',
+    'config' => [
+        'openEffect' => 'elastic',
+        'closeEffect' => 'elastic',
+        'helpers' => [
+            'title' => ['type' => 'float'],
+            'buttons' => [],
+        ],
+    ]
+]);

@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace app\controllers;
 
 use Yii;
-use app\models\ContactForm;
-use app\models\LoginForm;
-use yii\captcha\CaptchaAction;
+use app\models\Link;
+use app\models\LinkClick;
+use chillerlan\QRCode\QRCode;
+use yii\db\Expression;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\base\Security;
@@ -15,6 +16,10 @@ use yii\mail\MailerInterface;
 use yii\web\Controller;
 use yii\web\ErrorAction;
 use yii\web\Response;
+use yii\web\BadRequestHttpException;
+use yii\web\NotFoundHttpException;
+use yii\helpers\Html;
+use yii\helpers\Url;
 
 class SiteController extends Controller
 {
@@ -76,9 +81,92 @@ class SiteController extends Controller
      *
      * @return string
      */
-    public function actionIndex(): string
+    public function actionIndex()
     {
-        return $this->render('index');
+        $links = Link::find()->orderBy(['id' => SORT_DESC])->limit(5)->all();
+        return $this->render('index', ['model' => new Link(), 'links' => $links]);
+    }
+
+    /**
+     * Creates new link in db.
+     *
+     * @return string
+     */
+    public function actionCreateLink()
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        
+        $model = new Link();
+        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+            // $model->user_ip = Yii::$app->request->userIP; 
+            // OR remoteIP или 'X-Forwarded-For' и т.д...
+
+            if (Yii::$app->request->post('save', false) && Yii::$app->request->isAjax) { // return ['ok 90'];
+                if ($model->save()) {
+                    return [
+                        'result' => 'success',
+                        'url_full' => $model->url_full,
+                        'url_short' => $model->url_short,
+                        'html' => // Html::img($model->qrcode)
+                            Html::a(Html::img($model->qrcode), $model->qrcode, ['data-fancybox' => $model->qrcode, 'rel' => 'fancybox'])
+                            . ' ' . Html::a($model->url_short, Url::to(['go/'.$model->url_short]))
+                            . ' - ' . date('Y-m-d H:i:s', $model->created_at),
+                    ];
+                }
+                else {
+                    return [
+                        'result' => 'error 101 model ' .$model->id ,
+                        'errors' => $model->getErrors()
+                    ];
+                }
+            }
+            return; // not $this->redirect(Url::home())';
+        }
+        $errors = $model->getErrors();
+        $errorMessages = implode(' ', array_map(function ($e) {
+            return implode(' ', $e);
+        }, $errors));
+
+        throw new BadRequestHttpException('Validation failed: ' . $errorMessages);
+    }
+
+    /**
+     * Redirects from shortlink
+     *
+     * @return string
+     */
+    public function actionGo($url)
+    {
+        if (($link = Link::findOne(['url_short' => $url]))) {
+            try {
+                $linkClick = new LinkClick([
+                    'link_id' => $link->id,
+                    'user_ip' => Yii::$app->request->userIP,
+                ]);
+            } catch (\Exception $ex) {
+                Yii::error('actionGo error: ' . $ex->getMessage());
+            }
+            $linkClick->save();
+            return $this->redirect($link->url_full, 301);
+        }
+        throw new NotFoundHttpException('Запрашиваемая страница не найдена.');
+    }
+
+    /**
+     * Last links
+     *
+     * @return string
+     */
+    public function actionLinks()
+    {
+        $links = Link::find()
+            ->orderBy(['id' => SORT_DESC])
+            ->asArray()
+            ->limit(2)
+            ->all();
+
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        return $links;
     }
 
     /**

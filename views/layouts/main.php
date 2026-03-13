@@ -21,10 +21,8 @@ $this->render('_head');
 <body class="d-flex flex-column h-100">
 <?php $this->beginBody() ?>
 
-<?= $this->render('_header') ?>
-
 <main id="main" class="flex-grow-1" role="main">
-    <div class="container">
+    <div class="container pt-1">
         <?php if (!empty($this->params['breadcrumbs'])): ?>
             <?= Breadcrumbs::widget(['links' => $this->params['breadcrumbs']]) ?>
         <?php endif ?>
@@ -32,8 +30,6 @@ $this->render('_head');
         <?= $content ?>
     </div>
 </main>
-
-<?= $this->render('_footer') ?>
 
 <?php $this->endBody() ?>
 </body>
