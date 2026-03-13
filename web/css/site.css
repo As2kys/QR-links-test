@@ -1,0 +1,143 @@
+main > .container {
+    padding: 70px 15px 20px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
+
+.not-set {
+    color: var(--bs-danger);
+    font-style: italic;
+}
+
+/* add sorting icons to gridview sort links */
+a.asc:after, a.desc:after {
+    content: '';
+    left: 3px;
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border: solid 5px transparent;
+    margin: 4px 4px 2px 4px;
+    background: transparent;
+}
+
+a.asc:after {
+    border-bottom: solid 7px var(--bs-body-color);
+    border-top-width: 0;
+}
+
+a.desc:after {
+    border-top: solid 7px var(--bs-body-color);
+    border-bottom-width: 0;
+}
+
+.grid-view th {
+    white-space: nowrap;
+}
+
+.hint-block {
+    display: block;
+    margin-top: 5px;
+    color: var(--bs-secondary-color);
+}
+
+.error-summary {
+    color: var(--bs-danger-text-emphasis);
+    background: var(--bs-danger-bg-subtle);
+    border-left: 3px solid var(--bs-danger-border-subtle);
+    padding: 10px 20px;
+    margin: 0 0 15px 0;
+}
+
+/* align the logout "link" (button in form) of the navbar */
+.nav li > form > button.logout {
+    padding-top: 7px;
+    color: var(--bs-navbar-color);
+}
+
+@media (max-width: 767.98px) {
+    .nav li > form > button.logout {
+        display: block;
+        text-align: left;
+        width: 100%;
+        padding: 10px 0;
+    }
+}
+
+.nav > li > form > button.logout:focus,
+.nav > li > form > button.logout:hover {
+    color: var(--bs-navbar-hover-color);
+}
+
+.nav > li > form > button.logout:focus {
+    outline: none;
+}
+
+/* footer logo: light logo by default (light bg-body-tertiary), dark logo for dark theme */
+.footer-logo-dark { display: none; }
+
+[data-bs-theme="dark"] .footer-logo-light { display: none; }
+[data-bs-theme="dark"] .footer-logo-dark  { display: inline-block; }
+
+/* contact form textarea height */
+.site-contact textarea.form-control {
+    height: 140px;
+}
+
+/* form cards */
+.site-login .card,
+.site-contact .card {
+    border-radius: 12px;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, .08);
+}
+
+/* dark mode: elevate form cards against dark background */
+[data-bs-theme="dark"] .site-login .card,
+[data-bs-theme="dark"] .site-contact .card {
+    box-shadow: 0 0 0 1px var(--bs-border-color), 0 2px 16px rgba(0, 0, 0, .3);
+}
+
+/* dark mode: invert captcha text color for visibility on dark background */
+[data-bs-theme="dark"] .site-contact img[src*="captcha"] {
+    filter: invert(1) hue-rotate(180deg);
+}
+
+/* centered page layout: error, about, contact success */
+.site-index,
+.site-error,
+.site-about,
+.site-contact-success {
+    flex: 1;
+}
+
+.site-error .site-error-content,
+.site-about .site-about-content,
+.site-contact-success .site-contact-success-content {
+    width: 100%;
+    max-width: 90%;
+}
+
+@media (min-width: 576px) {
+    .site-error .site-error-content,
+    .site-about .site-about-content,
+    .site-contact-success .site-contact-success-content {
+        max-width: 80%;
+    }
+}
+
+@media (min-width: 768px) {
+    .site-error .site-error-content,
+    .site-about .site-about-content,
+    .site-contact-success .site-contact-success-content {
+        max-width: 60%;
+    }
+}
+
+@media (min-width: 992px) {
+    .site-error .site-error-content,
+    .site-about .site-about-content,
+    .site-contact-success .site-contact-success-content {
+        max-width: 50%;
+    }
+}
