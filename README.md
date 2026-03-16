@@ -6,8 +6,8 @@
 <ol>
     <li>
         Clone <a href="https://github.com/As2kys/QR-links-test.git" style="font-weight: bold; font-size: 1.08rem;" target"_blank">main branch</a> of this project
-        OR unpack <a href="https://github.com/As2kys/QR-links-test/archive/refs/heads/main.zip" target"_blank">project's zip-archive</a>,
-        then run <b>composer install</b>.
+        OR unpack <a href="https://github.com/As2kys/QR-links-test/archive/refs/heads/main.zip" target"_blank">project's zip-archive</a>,<br>
+        then run <b style="font-weight: bold; font-size: 1.08rem;">composer install --ignore-platform-reqs</b>.
     <li>
         Actualize <b>config/db.php</b> settings and run <b>php yii migrate</b>.
     </li>
