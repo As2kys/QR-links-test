@@ -33,84 +33,98 @@ $this->registerCss('
                 'method' => 'POST',
             ]);
 
-            echo Html::button('Ok?', ['onclick' => 'window.urlcheck()', 'id' => 'urlok']);
-            echo $form->field($model, 'url_full', [
-                'inputOptions' => ['class' => 'form-control', 'autofocus' => true],
-                'options' => ['class' => 'input-group has-validation mb-3'],
-            ])->textInput([
-                'placeholder' => 'https://...',
-                'value' => 'https://ya.ru/?'.date('is')
-            ])->label('Ссылка');
-
-            echo
+            echo 
+                Html::button('Ok?', ['onclick' => 'window.urlcheck()', 'id' => 'urlok']),
+                $form->field($model, 'url_full', [
+                    'inputOptions' => ['class' => 'form-control', 'autofocus' => true],
+                    'options' => ['class' => 'input-group has-validation mb-3'
+                ],
+                ])->textInput([
+                    'placeholder' => 'https://...',
+                    'value' => 'https://',
+                    'type' => 'url',
+                ])->label('Ссылка'),
+                Html::tag('div', '', ['id' => 'check-result']),
                 Html::submitButton('Сгенерировать короткую ссылку',
-                    ['class' => 'btn btn-primary px-2 ms-auto', 'disabled' => 'disabled', 'name' => 'save']
-                ),
-                Html::tag('div', '', ['id' => 'check-result']);
+                    ['class' => 'btn btn-primary px-2 ms-auto', 'disabled' => 'disabled', 'id' => 'save']
+                );
+
             ActiveForm::end();
         ?><br>
-        <h4>Предыдущие ссылки <!--u data-href="<?= Url::to(['site/links']) ?>">обновить</u--></h4>
+        <h4>Предыдущие ссылки</h4>
         <div id="links">
             <?php
                 foreach(is_array($links) ? $links : [$links] as $link) {
                     echo Html::tag('div',
                         Html::a(Html::img($link->qrcode), $link->qrcode, ['data-fancybox' => $link->qrcode, 'rel' => 'fancybox']) . 
                         Html::a(
-                            substr($link->url_full, 0, 24) . ((strlen($link->url_full) > 24) ? '...' : ''),
-                            Url::to(['go/'.$link->url_short]), ['title' => $link->url_full, 'target' => '_blank']
-                        ). ' - ' . date('H:i', strtotime($link->created_at)) . ', кликов - ' . $link->clicks
+                            substr($link->url_full, 0, 44) . ((strlen($link->url_full) > 44) ? '...' : ''),
+                            Url::to(['go/'.$link->url_short, 't' => time()]), ['title' => $link->url_full, 'target' => '_blank']
+                        ) . date(' - H:i', strtotime($link->created_at)) . ', кликов - ' . $link->clicks
                     );
                 }
                 if (!empty($links)) {
                     echo '<div><i>QR-код можно увеличить</i></div>';
-                    // Hhtml::tag('div', Html::tag('i', 'QR-код увеличивается'));
                 }
             ?>
         </div>
-    </div>
+    </div> 
 </div>
 <?php
 $this->registerJs('
-    $("form#create-link:first").off("submit").on("submit", function(event) {
-        event.preventDefault();
-        if (confirm("Все верно, сохранить ссылку?")) {
-            var formData = new FormData(this);
-            formData.append("save", "save");
-            $.ajax({
-                url: "' . Url::to(['create-link']). '",
-                type: "POST",
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function(response) {
-                    console.log(response.url_short);
-                    $("#links").prepend(response.html);
-                    $("#links a[data-fancybox]").fancybox();
-                    $("button[name=\'save\']").prop("disabled", true);
-                    $("#link-url_full").val("");
-                },
-                error: function(xhr, status, error) {
-                    $("#links").prepend("<p>Error: " + xhr.responseText + "</p>");
-                    console.error(xhr.responseText);
-                }
-            });
+    let $form = $("form#create-link:first");
+
+    $form.find("input").keydown(function(event) {
+        if (event.which == 13) { // ENTER
+            $("#urlok").click();
+            return false;
         }
+    });
+
+    $form.off("submit").on("submit", function(event) {
+        event.preventDefault();
+
+        var formData = new FormData(this);
+        formData.append("save", "save");
+        $.ajax({
+            url: "' . Url::to(['create-link']). '",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                console.log(response.url_short);
+                $("#links").prepend(response.html);
+                $("#links a[data-fancybox]").fancybox();
+                $("#save").prop("disabled", true);
+                $("#link-url_full").val("");
+            },
+            error: function(xhr, status, error) {
+                console.error(xhr.responseText);
+                $("#save").prop("disabled", true);
+                $("#check-result").html("<p>Ошибка: " + JSON.parse(xhr.responseText).message + "</p>");
+            }
+        });
+
         return false;
     });
 
-    window.urlcheck = async function checkUrlIsWorking(url) {
-        window.urltocheck = url ? url : $("#link-url_full").val();
+    window.urlcheck = async function checkUrlIsWorking() {
+        let url = $("#link-url_full").val();
+        if (url.length < 7 /* http:// */) return false;
         try {
+            new URL(url);
+            window.urltocheck = url;
             const response = await fetch(window.urltocheck, {
                 method: "HEAD",
                 mode: "no-cors"
             });
-            $("button[name=\'save\']").prop("disabled", false);
+            $("#save").prop("disabled", false);
             $("#check-result").text(window.urltocheck + " is ok.");
             return response.ok; 
         } catch (error) {
-            $("#check-result").text(window.urltocheck + " URL недоступен");
-            alert("Данный URL недоступен");
+            $("#check-result").text(window.urltocheck + " URL недоступен / неизвестная ошибка");
+            // alert("Данный URL недоступен");
             return false;
         }
     }

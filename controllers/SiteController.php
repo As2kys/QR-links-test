@@ -98,19 +98,17 @@ class SiteController extends Controller
         
         $model = new Link();
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
-            // $model->user_ip = Yii::$app->request->userIP; 
-            // OR remoteIP или 'X-Forwarded-For' и т.д...
-
-            if (Yii::$app->request->post('save', false) && Yii::$app->request->isAjax) { // return ['ok 90'];
+            if (Yii::$app->request->post('save', false) && Yii::$app->request->isAjax) {
                 if ($model->save()) {
                     return [
                         'result' => 'success',
                         'url_full' => $model->url_full,
                         'url_short' => $model->url_short,
-                        'html' => // Html::img($model->qrcode)
+                        'html' => Html::tag('div',
                             Html::a(Html::img($model->qrcode), $model->qrcode, ['data-fancybox' => $model->qrcode, 'rel' => 'fancybox'])
-                            . ' ' . Html::a($model->url_short, Url::to(['go/'.$model->url_short]))
-                            . ' - ' . date('Y-m-d H:i:s', $model->created_at),
+                                . Html::a(substr($model->url_full, 0, 44), Url::to(['go/'.$model->url_short]), ['target' => '_blank'])
+                                .  date(' - H:i:s', $model->created_at)
+                        )
                     ];
                 }
                 else {
@@ -120,14 +118,14 @@ class SiteController extends Controller
                     ];
                 }
             }
-            return; // not $this->redirect(Url::home())';
+            return ['result' => 'smth gone wrong...']; // not $this->redirect(Url::home())';
         }
         $errors = $model->getErrors();
         $errorMessages = implode(' ', array_map(function ($e) {
             return implode(' ', $e);
         }, $errors));
 
-        throw new BadRequestHttpException('Validation failed: ' . $errorMessages);
+        throw new BadRequestHttpException($errorMessages);
     }
 
     /**
@@ -143,10 +141,11 @@ class SiteController extends Controller
                     'link_id' => $link->id,
                     'user_ip' => Yii::$app->request->userIP,
                 ]);
-            } catch (\Exception $ex) {
+                $linkClick->save();
+            }
+            catch (\Exception $ex) {
                 Yii::error('actionGo error: ' . $ex->getMessage());
             }
-            $linkClick->save();
             return $this->redirect($link->url_full, 301);
         }
         throw new NotFoundHttpException('Запрашиваемая страница не найдена.');
