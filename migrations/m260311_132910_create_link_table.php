@@ -25,7 +25,7 @@ class m260311_132910_create_link_table extends Migration
             'updated_at'    => $this->timestamp(),
         ]);
 
-        $url_full   = 'https://www.google.com/search?q=%D0%B4%D0%B5%D0%BD%D1%8C+%D0%BD%D0%B5%D0%B4%D0%B5%D0%BB%D0%B8';
+        $url_full   = 'https://github.com/As2kys/QR-links-test';
         $qrcode     = (new QRCode)->render($url_full);
         $url_short  = Link::getUrlShort($qrcode);
         $this->insert('{{%link}}', [
