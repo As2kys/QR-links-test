@@ -12,4 +12,7 @@
         Actualize <b>config/db.php</b> settings and run <b>php yii migrate</b>.
     </li>
 </ol>
-<p>P.S. of course, other variants of installation are possible too, this one is just for example.</p>
+<p>
+    P.S. of course, other variants of installation are possible too, this one is just for example.<br>
+    <i>* may require php-intl extension (like php8.2-intl etc...)</i>
+</p>

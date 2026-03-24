@@ -2,7 +2,7 @@
 
 return [
     'class' => 'yii\db\Connection',
-    'dsn' => 'mysql:host=localhost;dbname=genomed',
+    'dsn' => 'mysql:host=localhost;dbname=qrlinks',
     'username' => 'ustas',
     'password' => '1111',
     'charset' => 'utf8',

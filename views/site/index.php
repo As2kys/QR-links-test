@@ -18,6 +18,7 @@ $this->registerCss('
     h4 u { color: #888!important; cursor: pointer; font-size: 20px; }
     #links a[data-fancybox] { margin-right: 10px }
     #links img { max-height: 30px }
+    u[data-href] { color: #900; cursor: pointer; float: right; }
 ');
 ?>
 <div class="site-index d-flex flex-column justify-content-center">
@@ -41,7 +42,7 @@ $this->registerCss('
                 ],
                 ])->textInput([
                     'placeholder' => 'https://...',
-                    'value' => 'https://',
+                    'value' => 'https://ya.ru/',
                     'type' => 'url',
                 ])->label('Ссылка'),
                 Html::tag('div', '', ['id' => 'check-result']),
@@ -64,7 +65,7 @@ $this->registerCss('
                     );
                 }
                 if (!empty($links)) {
-                    echo '<div><i>QR-код можно увеличить</i></div>';
+                    echo '<div><u data-href="refresh">заново</u><i>QR-код можно увеличить</i></div>';
                 }
             ?>
         </div>
@@ -132,6 +133,12 @@ $this->registerJs('
     $("#urlok").click(function() {
         console.log("checking...");
         window.urlcheck;
+    });
+
+    $("u[data-href]").click(function(event) {
+        if (confirm("Перезапустить миграции?")) {
+            window.location.href = event.target.dataset.href;
+        }
     });
 ');
 echo FancyBox::widget([

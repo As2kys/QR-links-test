@@ -174,6 +174,18 @@ class SiteController extends Controller
     }
 
     /**
+     * Last links
+     *
+     * @return string
+     */
+    public function actionRefresh()
+    {
+        $appPath = dirname(__DIR__);
+        exec("cd {$appPath} && php yii migrate/redo all --interactive=0");
+        return $this->redirect(Url::home(), 301);
+    }
+
+    /**
      * Login action.
      *
      * @return Response|string
